@@ -30,7 +30,7 @@ Output Schema:
 
 Field Extraction Rules:
 - text: full original message text
-- description: Rewrite marketing phrases with a sarcastic/witty tone in pt-BR. Keep payment conditions, coupon rules, and other useful info clear and objective.
+- description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (e.g., poking fun at consumerism, exaggerated product claims, or the user's impulse buying). Keep payment conditions, coupon rules and non-product descriptions clear.
 - product: product name with specs (null if not identified)
 - store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned)
 - price: final price as integer in cents (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
@@ -95,7 +95,7 @@ Output:
  * Metadata about the prompt for monitoring and versioning
  */
 export const PROMPT_METADATA = {
-  version: '1.0.1',
+  version: '1.0.2',
   lastUpdated: '2025-12-04',
   estimatedTokens: 900, // Approximate token count for cost tracking
   language: 'pt-br',
