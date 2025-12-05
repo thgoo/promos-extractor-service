@@ -30,10 +30,10 @@ Output Schema:
 
 Field Extraction Rules:
 - text: full original message text
-- description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (e.g., poking fun at consumerism, exaggerated product claims, or the user's impulse buying). Keep payment conditions, coupon rules and non-product descriptions clear.
+- description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (e.g., poking fun at consumerism, exaggerated product claims, or the user's impulse buying, always keeping it short). Keep payment conditions and non-product descriptions clear. If coupons are required to reach the listed price, mention that they must be applied.
 - product: product name with specs (null if not identified)
 - store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned)
-- price: final price as integer in cents (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
+- price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
 - coupons: array of coupon objects with "code" and "information" fields. If information value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
 
 Examples:
@@ -47,7 +47,7 @@ NOTE ÓTIMO PRA TUA ROTINA
 Output:
 {
   "text": "NOTE ÓTIMO PRA TUA ROTINA\n💻 Notebook Acer Aspire GO 15, Intel Core i5, 512GB SSD, 8GB RAM\n🔥 DE 3.299 | POR 2.799 em 12x\n🎟Aplique o cupom de R$200 OFF",
-  "description": "Pra você fingir que vai ser produtivo.\nEm até 12x.\nAplique o cupom de R$200 OFF.",
+  "description": "Pra você fingir que vai ser produtivo.\nEm até 12x.\nAplique o cupom de R$200 OFF para chegar no preço.",
   "product": "Notebook Acer Aspire GO 15, Intel Core i5, 512GB SSD, 8GB RAM",
   "store": null,
   "price": 279900,
@@ -63,7 +63,7 @@ https://mercadolivre.com/sec/2MLbkZG
 Output:
 {
   "text": "🔥 Monitor AOC 24\" 180Hz\nDE 799 | POR 598,40\nCUPOM: MELIPROMOAQUI ou VALEPROMO\nhttps://mercadolivre.com/sec/2MLbkZG",
-  "description": "Monitor bom pra perder ranked em alta definição.",
+  "description": "Monitor bom pra perder ranked em alta definição.\nAplique um dos cupons para chegar no preço.",
   "product": "Monitor AOC 24\" 180Hz",
   "store": "Mercado Livre",
   "price": 59840,
