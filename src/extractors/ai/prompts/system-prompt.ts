@@ -32,7 +32,7 @@ Field Extraction Rules:
 - text: full original message text
 - description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (e.g., poking fun at consumerism, exaggerated product claims, or the user's impulse buying, always keeping it short). Keep payment conditions and non-product descriptions clear. If coupons are required to reach the listed price, mention that they must be applied.
 - product: product name with specs (null if not identified)
-- store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned)
+- store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned). Use expanded links to identify the store by domain (e.g., amazon.com.br → Amazon, mercadolivre.com.br → Mercado Livre, aliexpress.com → AliExpress, magazineluiza.com.br → Magazine Luiza, kabum.com.br → Kabum)
 - price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
 - coupons: array of coupon objects with "code" and "information" fields. If information value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
 

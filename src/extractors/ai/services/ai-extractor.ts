@@ -49,12 +49,11 @@ export default class AIExtractorService implements LLMProvider {
   }
 
   async extract(input: ExtractRequest): Promise<ExtractResponse> {
-    const { text } = input;
+    const { text, links } = input;
 
-    // Wrap the entire extraction in retry logic
     return withRetry(
       async () => {
-        const payload = this.buildPayload(text);
+        const payload = this.buildPayload(text, links);
         const rawResponse = await this.callAPI(payload);
         const extractedData = this.parseResponse(rawResponse);
         const result = this.transformToResponse(extractedData, text);
@@ -67,7 +66,11 @@ export default class AIExtractorService implements LLMProvider {
   /**
    * Build the API request payload
    */
-  private buildPayload(text: string): AbacusRequest {
+  private buildPayload(text: string, links: string[]): AbacusRequest {
+    const linksContext = links.length > 0
+      ? `\n\n[Links expandidos: ${links.join(', ')}]`
+      : '';
+
     return {
       model: this.model,
       messages: [
@@ -77,7 +80,7 @@ export default class AIExtractorService implements LLMProvider {
         },
         {
           role: 'user',
-          content: text,
+          content: text + linksContext,
         },
       ],
       response_format: { type: 'json_object' },
