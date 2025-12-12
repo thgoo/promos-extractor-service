@@ -109,6 +109,8 @@ export interface AIExtractedData {
     code: string;
     discount: string | null;
   }[];
+  productKey: string | null;
+  category: string | null;
 }
 
 /**

@@ -6,9 +6,9 @@
  * This prompt instructs the LLM to extract structured data from Brazilian Portuguese
  * promotional messages posted in Telegram groups.
  *
- * Version: 1.0.0
- * Last Updated: 2024-11-12
- * Estimated Tokens: ~850
+ * Version: 2.0.0
+ * Last Updated: 2025-12-11
+ * Estimated Tokens: ~1100
  *
  * @see https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering
  */
@@ -25,16 +25,28 @@ Output Schema:
   "product": "",
   "store": "",
   "price": null,
-  "coupons": Array<{code: string, information: string | null}>
+  "coupons": Array<{code: string, information: string | null}>,
+  "productKey": "",
+  "category": ""
 }
 
 Field Extraction Rules:
 - text: full original message text
-- description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (e.g., poking fun at consumerism, exaggerated product claims, or the user's impulse buying, always keeping it short). Keep payment conditions and non-product descriptions clear. If coupons are required to reach the listed price, mention that they must be applied.
+- description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (always keeping it short). Keep payment conditions and non-product descriptions clear. If coupons are required to reach the listed price, mention that they must be applied.
 - product: product name with specs (null if not identified)
 - store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned). Use expanded links to identify the store by domain (e.g., amazon.com.br → Amazon, mercadolivre.com.br → Mercado Livre, aliexpress.com → AliExpress, magazineluiza.com.br → Magazine Luiza, kabum.com.br → Kabum)
 - price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
 - coupons: array of coupon objects with "code" and "information" fields. If information value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
+- productKey: normalized product identifier for price tracking. Format: lowercase slug "{brand}-{product-line}-{variant}". Return for any product with brand + name + size/quantity/capacity. Only return null for truly generic products without brand or model (e.g., "notebook", "fone bluetooth", "camiseta").
+- category: product category, one of: [smartphones, notebooks, tvs, monitors, tablets, audio, games, appliances, home, office, fashion, beauty, supplements, food, others] (null if product is null)
+
+ProductKey Rules:
+- Use lowercase with hyphens: "apple-iphone-15-pro-max-256gb"
+- Include storage/size/other well-known specs when it significantly affects price: "samsung-galaxy-s24-ultra-256gb"
+- Ignore color (usually doesn't affect price): "apple-iphone-15-128gb" (not "apple-iphone-15-128gb-preto")
+- For bundles, return null (bundles are not comparable)
+- For generic products without clear model, return null: "notebook acer" → null, "fone bluetooth" → null
+- For products with clear specs (easy to find exact same product across stores), return the key: "PlayStation 5 Slim Digital 1TB" → "sony-playstation-5-slim-digital-1tb"
 
 Examples:
 
@@ -51,7 +63,9 @@ Output:
   "product": "Notebook Acer Aspire GO 15, Intel Core i5, 512GB SSD, 8GB RAM",
   "store": null,
   "price": 279900,
-  "coupons": []
+  "coupons": [],
+  "productKey": "acer-aspire-go-15-i5-8gb-512gb",
+  "category": "notebooks"
 }
 
 Input:
@@ -70,7 +84,26 @@ Output:
   "coupons": [
     {"code": "MELIPROMOAQUI", "information": null},
     {"code": "VALEPROMO", "information": null}
-  ]
+  ],
+  "productKey": null,
+  "category": null
+}
+
+Input:
+🎮 PlayStation 5 Slim Digital 1TB
+Por apenas R$ 2.849
+https://amazon.com.br/dp/B0CL5KNB9M
+
+Output:
+{
+  "text": "🎮 PlayStation 5 Slim Digital 1TB\nPor apenas R$ 2.849\nhttps://amazon.com.br/dp/B0CL5KNB9M",
+  "description": "Pra você finalmente zerar aquele backlog. Ou não.",
+  "product": "PlayStation 5 Slim Digital 1TB",
+  "store": "Amazon",
+  "price": 284900,
+  "coupons": [],
+  "productKey": "sony-playstation-5-slim-digital-1tb",
+  "category": "games"
 }
 
 Input:
@@ -88,16 +121,36 @@ Output:
   "product": null,
   "store": "Mercado Livre",
   "price": null,
-  "coupons": []
-}`;
+  "coupons": [],
+  "productKey": null,
+  "category": null
+}
+  
+Input:
+🛒 Hemmer Ketchup Tradicional 1kg
+Por R$ 18,90
+https://amazon.com.br/dp/xxx
+ 
+Output:
+{
+  "text": "🛒 Hemmer Ketchup Tradicional 1kg\nPor R$ 18,90\nhttps://amazon.com.br/dp/xxx",
+  "description": "Pra você fingir que come saudável enquanto afoga tudo em ketchup.",
+  "product": "Hemmer Ketchup Tradicional 1kg",
+  "store": "Amazon",
+  "price": 1890,
+  "coupons": [],
+  "productKey": "hemmer-ketchup-tradicional-1kg",
+  "category": "food"
+}
+`;
 
 /**
  * Metadata about the prompt for monitoring and versioning
  */
 export const PROMPT_METADATA = {
-  version: '1.0.2',
-  lastUpdated: '2025-12-04',
-  estimatedTokens: 900, // Approximate token count for cost tracking
+  version: '2.1.0',
+  lastUpdated: '2025-12-12',
+  estimatedTokens: 1350,
   language: 'pt-br',
-  examples: 3,
+  examples: 5,
 } as const;

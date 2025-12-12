@@ -84,6 +84,7 @@ export default class AIExtractorService implements LLMProvider {
         },
       ],
       response_format: { type: 'json_object' },
+      temperature: 0,
     };
   }
 
@@ -178,6 +179,8 @@ export default class AIExtractorService implements LLMProvider {
         code: c.code,
         discount: c.discount || undefined,
       })),
+      productKey: extracted.productKey || null,
+      category: extracted.category || null,
     };
   }
 }

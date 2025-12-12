@@ -25,6 +25,8 @@ export interface ExtractResponse {
   store: string | null;        // Store/brand name
   price: number | null;        // Price in cents
   coupons: Coupon[];           // Array of coupons
+  productKey: string | null;   // Unique identifier for the product
+  category: string | null;     // Product category
 }
 
 export interface HealthResponse {

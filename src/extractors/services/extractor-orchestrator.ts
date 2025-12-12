@@ -74,6 +74,7 @@ export default class ExtractorOrchestrator {
       hasPrice: result.price !== null,
       hasProduct: result.product !== null,
       hasStore: result.store !== null,
+      hasProductKey: result.productKey !== null,
     });
   }
 
