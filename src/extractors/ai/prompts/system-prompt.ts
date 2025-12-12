@@ -38,7 +38,7 @@ Field Extraction Rules:
 - price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
 - coupons: array of coupon objects with "code" and "information" fields. If information value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
 - productKey: normalized product identifier for price tracking. Format: lowercase slug "{brand}-{product-line}-{variant}". Return for any product with brand + name + size/quantity/capacity. Only return null for truly generic products without brand or model (e.g., "notebook", "fone bluetooth", "camiseta").
-- category: product category, one of: [smartphones, notebooks, tvs, monitors, tablets, audio, games, appliances, home, office, fashion, beauty, supplements, food, others] (null if product is null)
+- category: product category, one of: [smartphones, notebooks, tvs, monitors, tablets, audio, games, hardware, peripherals, appliances, home, office, fashion, beauty, supplements, food, others] (null if product is null)
 
 ProductKey Rules:
 - Use lowercase with hyphens: "apple-iphone-15-pro-max-256gb"
