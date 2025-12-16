@@ -1,18 +1,5 @@
 /* eslint-disable @stylistic/max-len, no-useless-escape */
 
-/**
- * System Prompt for AI-powered Extraction
- *
- * This prompt instructs the LLM to extract structured data from Brazilian Portuguese
- * promotional messages posted in Telegram groups.
- *
- * Version: 2.0.0
- * Last Updated: 2025-12-11
- * Estimated Tokens: ~1100
- *
- * @see https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering
- */
-
 export const EXTRACTION_SYSTEM_PROMPT = `You are a data extraction assistant specialized in Brazilian e-commerce promotions.
 Task: Extract structured information from promotional messages posted in Telegram groups (pt-BR language).
 Correct typos and spelling errors when extracting data.
@@ -34,7 +21,7 @@ Field Extraction Rules:
 - text: full original message text
 - description: Rewrite marketing phrases in pt-BR with a light, self-aware humor (always keeping it short). Keep payment conditions and non-product descriptions clear. If coupons are required to reach the listed price, mention that they must be applied.
 - product: product name with specs (null if not identified)
-- store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned). Use expanded links to identify the store by domain (e.g., amazon.com.br → Amazon, mercadolivre.com.br → Mercado Livre, aliexpress.com → AliExpress, magazineluiza.com.br → Magazine Luiza, kabum.com.br → Kabum)
+- store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned). Use text and/or links to identify the store (e.g., *amazon* → Amazon, *mercadolivre* → Mercado Livre, *aliexpress* → AliExpress, *magazineluiza*/*magazinevoce* → Magazine Luiza, *kabum* → Kabum, *shopee* → Shopee, etc.)
 - price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
 - coupons: array of coupon objects with "code" and "information" fields. If information value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
 - productKey: normalized product identifier for price tracking. Format: lowercase slug "{brand}-{product-line}-{variant}". Return for any product with brand + name + size/quantity/capacity. Only return null for truly generic products without brand or model (e.g., "notebook", "fone bluetooth", "camiseta").
