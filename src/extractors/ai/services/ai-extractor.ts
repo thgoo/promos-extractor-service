@@ -83,7 +83,7 @@ export default class AIExtractorService implements LLMProvider {
           content: text + linksContext,
         },
       ],
-      response_format: { type: 'json_object' },
+      response_format: { type: 'json' },
       temperature: 0,
     };
   }
