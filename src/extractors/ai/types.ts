@@ -67,7 +67,7 @@ export interface AbacusMessage {
 export interface AbacusRequest {
   model: string;
   messages: AbacusMessage[];
-  response_format: { type: 'json' };
+  response_format: { type: 'json_object' };
   temperature?: number;
   max_tokens?: number;
 }

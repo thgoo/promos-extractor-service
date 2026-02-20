@@ -1,26 +1,24 @@
 /**
  * Extractor Orchestrator
- * Coordinates AI extraction with regex fallback
+ * Coordinates AI extraction with retry logic
  */
 
 import type { LLMProvider } from '../ai/types';
-import type RegexExtractorService from '../regex/services/regex-extractor';
 import type { Logger } from '~/logger';
 import type { ExtractRequest, ExtractResponse } from '~/types';
 import { AIExtractionError } from '../ai/types';
 
 /**
- * Orchestrates extraction using AI with automatic fallback to regex
+ * Orchestrates extraction using AI with automatic retry on failure
  */
 export default class ExtractorOrchestrator {
   constructor(
-    private readonly aiProvider: LLMProvider | null,
-    private readonly regexExtractor: RegexExtractorService,
+    private readonly aiProvider: LLMProvider,
     private readonly logger: Logger,
-  ) {}
+  ) { }
 
   /**
-   * Extract data using AI with automatic fallback to regex on failure
+   * Extract data using AI with automatic retry on failure
    */
   async extract(input: ExtractRequest): Promise<ExtractResponse> {
     const { messageId, chat, text } = input;
@@ -31,32 +29,31 @@ export default class ExtractorOrchestrator {
       textLength: text.length,
     });
 
-    // Try AI extraction first if provider is available and configured
-    if (this.aiProvider?.isConfigured()) {
-      try {
-        const result = await this.aiProvider.extract(input);
-
-        this.logger.info('AI extraction successful', {
-          messageId,
-          provider: this.aiProvider.name,
-        });
-
-        this.logExtractionResult(messageId, this.aiProvider.name, result);
-        return result;
-      } catch (error) {
-        this.logger.warn('AI extraction failed, falling back to regex', {
-          messageId,
-          provider: this.aiProvider.name,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          errorType: error instanceof AIExtractionError ? error.name : 'UnknownError',
-        });
-      }
+    if (!this.aiProvider.isConfigured()) {
+      throw new Error('AI provider is not configured');
     }
 
-    // Fallback to regex extraction
-    const result = this.regexExtractor.extract(input);
-    this.logExtractionResult(messageId, 'regex', result);
-    return result;
+    try {
+      const result = await this.aiProvider.extract(input);
+
+      this.logger.info('AI extraction successful', {
+        messageId,
+        provider: this.aiProvider.name,
+      });
+
+      this.logExtractionResult(messageId, this.aiProvider.name, result);
+      return result;
+    } catch (error) {
+      this.logger.error('AI extraction failed', {
+        messageId,
+        provider: this.aiProvider.name,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorType: error instanceof AIExtractionError ? error.name : 'UnknownError',
+      });
+
+      // Re-throw the error to be handled by the caller
+      throw error;
+    }
   }
 
   /**
@@ -81,14 +78,9 @@ export default class ExtractorOrchestrator {
   /**
    * Get current extraction strategy info
    */
-  getStrategy(): { primary: string; fallback: string } {
-    const primary = this.aiProvider?.isConfigured()
-      ? `ai-${this.aiProvider.name}`
-      : 'regex';
-
+  getStrategy(): { primary: string } {
     return {
-      primary,
-      fallback: 'regex',
+      primary: `ai-${this.aiProvider.name}`,
     };
   }
 }

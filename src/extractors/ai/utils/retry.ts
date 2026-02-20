@@ -137,12 +137,12 @@ export const RETRY_PRESETS = {
 
   /**
    * Aggressive retry for critical operations
-   * 5 attempts: 1s, 2s, 4s, 8s, 10s
+   * 5 attempts: 1s, 2s, 4s, 8s, 16s
    */
   AGGRESSIVE: {
     maxAttempts: 5,
     initialDelayMs: 1000,
-    maxDelayMs: 10000,
+    maxDelayMs: 16000,
     backoffMultiplier: 2,
   } as RetryConfig,
 } as const;

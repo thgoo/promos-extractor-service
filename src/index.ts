@@ -7,7 +7,6 @@ import { HTTP_STATUS_CODE } from '~/constants/http';
 import extractors from '~/extractors/extractors';
 import { ConsoleLogger } from '~/logger';
 import AIExtractorService from './extractors/ai/services/ai-extractor';
-import RegexExtractorService from './extractors/regex/services/regex-extractor';
 import ExtractorOrchestrator from './extractors/services/extractor-orchestrator';
 
 export function createApp({
@@ -41,7 +40,7 @@ export function createApp({
 
   // Health check
   app.get('/health', c => {
-    const strategy = orchestrator?.getStrategy() || { primary: 'regex', fallback: 'regex' };
+    const strategy = orchestrator?.getStrategy() || { primary: 'ai-unknown' };
     return c.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -79,39 +78,27 @@ export function createApp({
 
 // Initialize extractors and orchestrator
 const appLogger = new ConsoleLogger();
-const regexExtractor = new RegexExtractorService();
 
-let aiProvider = null;
-if (config.LLM_PROVIDER === 'abacus' && config.ABACUS_API_KEY) {
-  try {
-    aiProvider = new AIExtractorService();
-    if (aiProvider.isConfigured()) {
-      appLogger.info('AI Extractor initialized', {
-        provider: aiProvider.name,
-        model: config.ABACUS_MODEL,
-      });
-    } else {
-      appLogger.warn('AI Extractor not properly configured');
-      aiProvider = null;
-    }
-  } catch (error) {
-    appLogger.error('Failed to initialize AI Extractor', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-    aiProvider = null;
-  }
-} else {
-  appLogger.info('AI Extractor disabled', {
-    reason: 'Using regex only',
-  });
+// Initialize AI provider - required for the service to work
+if (config.LLM_PROVIDER !== 'abacus' || !config.ABACUS_API_KEY) {
+  throw new Error('AI provider is required. Please configure ABACUS_API_KEY');
 }
 
-const orchestrator = new ExtractorOrchestrator(aiProvider, regexExtractor, appLogger);
+const aiProvider = new AIExtractorService();
+if (!aiProvider.isConfigured()) {
+  throw new Error('AI Extractor not properly configured');
+}
+
+appLogger.info('AI Extractor initialized', {
+  provider: aiProvider.name,
+  model: config.ABACUS_MODEL,
+});
+
+const orchestrator = new ExtractorOrchestrator(aiProvider, appLogger);
 
 const strategy = orchestrator.getStrategy();
 appLogger.info('Extraction strategy configured', {
   primary: strategy.primary,
-  fallback: strategy.fallback,
 });
 
 const app = createApp({ orchestrator });

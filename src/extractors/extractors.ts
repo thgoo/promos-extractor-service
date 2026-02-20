@@ -11,7 +11,7 @@ const app = new Hono<{ Variables: Variables }>();
 
 /**
  * POST /api/extractors/extract
- * Extract structured data from text using AI with automatic fallback to regex
+ * Extract structured data from text using AI with automatic retry
  */
 app.post('/extract', zValidator('json', extractRequestSchema), async c => {
   const orchestrator = c.get('orchestrator');

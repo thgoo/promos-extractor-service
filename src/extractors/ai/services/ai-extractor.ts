@@ -59,7 +59,7 @@ export default class AIExtractorService implements LLMProvider {
         const result = this.transformToResponse(extractedData, text);
         return result;
       },
-      RETRY_PRESETS.STANDARD, // 3 attempts: 1s, 2s, 4s
+      RETRY_PRESETS.AGGRESSIVE, // 3 attempts: 1s, 2s, 4s
     );
   }
 
@@ -83,7 +83,7 @@ export default class AIExtractorService implements LLMProvider {
           content: text + linksContext,
         },
       ],
-      response_format: { type: 'json' },
+      response_format: { type: 'json_object' },
       temperature: 0,
     };
   }
