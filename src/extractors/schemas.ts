@@ -1,10 +1,5 @@
-/**
- * Extractor schemas
- * Zod schemas for request/response validation
- * Aligned with backend (hono-boilerplate) format
- */
-
 import { z } from 'zod';
+import { CATEGORIES } from '~/constants/categories';
 
 export const extractRequestSchema = z.object({
   text: z.string().min(1, 'Text is required'),
@@ -15,20 +10,21 @@ export const extractRequestSchema = z.object({
 
 export const couponSchema = z.object({
   code: z.string(),
-  discount: z.string().optional(),
-  description: z.string().optional(),
-  expiresAt: z.string().optional(),
-  url: z.string().optional(),
+  discount: z.string().nullable(),
 });
 
-export const extractResponseSchema = z.object({
+export const extractionSchema = z.object({
   text: z.string(),
   description: z.string().nullable(),
   product: z.string().nullable(),
   store: z.string().nullable(),
-  price: z.number().nullable(),
-  coupons: z.array(couponSchema),
+  price: z.number().transform(Math.round).nullable(),
+  coupons: z.array(couponSchema).default([]),
+  productKey: z.string().nullable(),
+  category: z.enum(CATEGORIES).nullable(),
 });
 
-export type ExtractRequestInput = z.infer<typeof extractRequestSchema>;
-export type ExtractResponseOutput = z.infer<typeof extractResponseSchema>;
+export type ExtractRequest = z.infer<typeof extractRequestSchema>;
+export type ExtractResponse = z.infer<typeof extractionSchema>;
+export type Coupon = z.infer<typeof couponSchema>;
+export type { Category } from '~/constants/categories';

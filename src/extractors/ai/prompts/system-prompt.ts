@@ -1,4 +1,5 @@
 /* eslint-disable @stylistic/max-len, no-useless-escape */
+import { CATEGORIES } from '~/constants/categories';
 
 export const EXTRACTION_SYSTEM_PROMPT = `You are a data extraction assistant specialized in Brazilian e-commerce promotions.
 Task: Extract structured information from promotional messages posted in Telegram groups (pt-BR language).
@@ -12,7 +13,7 @@ Output Schema:
   "product": "",
   "store": "",
   "price": null,
-  "coupons": Array<{code: string, information: string | null}>,
+  "coupons": Array<{code: string, discount: string | null}>,
   "productKey": "",
   "category": ""
 }
@@ -23,9 +24,9 @@ Field Extraction Rules:
 - product: product name with specs (null if not identified)
 - store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned). Use text and/or links to identify the store (e.g., *amazon* → Amazon, *mercadolivre* → Mercado Livre, *aliexpress* → AliExpress, *magazineluiza*/*magazinevoce* → Magazine Luiza, *kabum* → Kabum, *shopee* → Shopee, etc.)
 - price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
-- coupons: array of coupon objects with "code" and "information" fields. If information value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
+- coupons: array of coupon objects with "code" and "discount" fields. If discount value is not specified, use null. If coupon code is not identified or is not 100% clear, remove from array. Empty array if no coupons found.
 - productKey: normalized product identifier for price tracking. Format: lowercase slug "{brand}-{product-line}-{variant}". Return for any product with brand + name + size/quantity/capacity. Only return null for truly generic products without brand or model (e.g., "notebook", "fone bluetooth", "camiseta").
-- category: product category, one of: [smartphones, notebooks, tvs, monitors, tablets, audio, games, hardware, peripherals, appliances, home, office, fashion, beauty, supplements, food, others] (null if product is null)
+- category: product category, one of: [${CATEGORIES.join(', ')}] (null if product is null)
 
 ProductKey Rules:
 - Use lowercase with hyphens: "apple-iphone-15-pro-max-256gb"
@@ -69,11 +70,11 @@ Output:
   "store": "Mercado Livre",
   "price": 59840,
   "coupons": [
-    {"code": "MELIPROMOAQUI", "information": null},
-    {"code": "VALEPROMO", "information": null}
+    {"code": "MELIPROMOAQUI", "discount": null},
+    {"code": "VALEPROMO", "discount": null}
   ],
   "productKey": null,
-  "category": null
+  "category": "monitors"
 }
 
 Input:
@@ -99,7 +100,7 @@ Input:
 🏪 Mercado Livre
 💬 11 Comentários
 
-➡️ https://promo.ninja
+➡️ https://promo.ninja/dRzRe
 
 Output:
 {
@@ -112,12 +113,12 @@ Output:
   "productKey": null,
   "category": null
 }
-  
+
 Input:
 🛒 Hemmer Ketchup Tradicional 1kg
 Por R$ 18,90
 https://amazon.com.br/dp/xxx
- 
+
 Output:
 {
   "text": "🛒 Hemmer Ketchup Tradicional 1kg\nPor R$ 18,90\nhttps://amazon.com.br/dp/xxx",
@@ -130,14 +131,3 @@ Output:
   "category": "food"
 }
 `;
-
-/**
- * Metadata about the prompt for monitoring and versioning
- */
-export const PROMPT_METADATA = {
-  version: '2.1.0',
-  lastUpdated: '2025-12-12',
-  estimatedTokens: 1350,
-  language: 'pt-br',
-  examples: 5,
-} as const;

@@ -1,22 +1,10 @@
-import type {
-  AbacusRequest,
-  AbacusResponse,
-  AIExtractedData,
-  LLMProvider,
-} from '../types';
+import type { AbacusRequest, AbacusResponse, LLMProvider } from '../types';
 import type { ExtractRequest, ExtractResponse } from '~/types';
 import { config } from '~/config';
+import { extractionSchema } from '~/extractors/schemas';
 import { EXTRACTION_SYSTEM_PROMPT } from '../prompts/system-prompt';
-import {
-  AIAPIError,
-  AIParsingError,
-} from '../types';
+import { AIAPIError, AIParsingError } from '../types';
 import { withRetry, RETRY_PRESETS } from '../utils/retry';
-
-/**
- * Abacus AI Extractor Service
- * Implements LLMProvider interface using Abacus API (RouteLL M)
- */
 
 export default class AIExtractorService implements LLMProvider {
   readonly name = 'abacus';
@@ -28,7 +16,7 @@ export default class AIExtractorService implements LLMProvider {
 
   constructor() {
     if (!config.ABACUS_API_KEY) {
-      throw new Error('ABACUS_API_KEY is required for AI extractor');
+      throw new Error('ABACUS_API_KEY is required');
     }
     this.apiKey = config.ABACUS_API_KEY;
     this.model = config.ABACUS_MODEL;
@@ -36,36 +24,15 @@ export default class AIExtractorService implements LLMProvider {
     this.timeoutMs = config.ABACUS_TIMEOUT_MS;
   }
 
-  /**
-   * Check if Abacus provider is properly configured
-   */
-  isConfigured(): boolean {
-    return Boolean(
-      this.apiKey &&
-      this.model &&
-      this.baseUrl &&
-      config.LLM_PROVIDER === 'abacus',
-    );
-  }
-
   async extract(input: ExtractRequest): Promise<ExtractResponse> {
     const { text, links } = input;
-
-    return withRetry(
-      async () => {
-        const payload = this.buildPayload(text, links);
-        const rawResponse = await this.callAPI(payload);
-        const extractedData = this.parseResponse(rawResponse);
-        const result = this.transformToResponse(extractedData, text);
-        return result;
-      },
-      RETRY_PRESETS.AGGRESSIVE, // 3 attempts: 1s, 2s, 4s
-    );
+    return withRetry(async () => {
+      const payload = this.buildPayload(text, links);
+      const rawResponse = await this.callAPI(payload);
+      return this.parseResponse(rawResponse, text);
+    }, RETRY_PRESETS.AGGRESSIVE);
   }
 
-  /**
-   * Build the API request payload
-   */
   private buildPayload(text: string, links: string[]): AbacusRequest {
     const linksContext = links.length > 0
       ? `\n\n[Links expandidos: ${links.join(', ')}]`
@@ -74,23 +41,15 @@ export default class AIExtractorService implements LLMProvider {
     return {
       model: this.model,
       messages: [
-        {
-          role: 'system',
-          content: EXTRACTION_SYSTEM_PROMPT,
-        },
-        {
-          role: 'user',
-          content: text + linksContext,
-        },
+        { role: 'system', content: EXTRACTION_SYSTEM_PROMPT },
+        { role: 'user', content: text + linksContext },
       ],
       response_format: { type: 'json_object' },
       temperature: 0,
+      max_tokens: 1024,
     };
   }
 
-  /**
-   * Call Abacus API with timeout
-   */
   private async callAPI(payload: AbacusRequest): Promise<string> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -118,16 +77,14 @@ export default class AIExtractorService implements LLMProvider {
       const content = data.choices[0]?.message?.content;
 
       if (!content) {
-        throw new AIAPIError('No content in Abacus response', 500);
+        throw new AIAPIError('Empty response from Abacus API', 500);
       }
 
       return content;
     } catch (error) {
-      if (error instanceof AIAPIError) {
-        throw error;
-      }
+      if (error instanceof AIAPIError) throw error;
       if ((error as Error).name === 'AbortError') {
-        throw new AIAPIError(`Request timeout after ${this.timeoutMs}ms`, 408);
+        throw new AIAPIError(`Request timed out after ${this.timeoutMs}ms`, 408);
       }
       throw new AIAPIError(
         `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -139,48 +96,27 @@ export default class AIExtractorService implements LLMProvider {
     }
   }
 
-  /**
-   * Parse JSON response from LLM
-   * Handles responses wrapped in ```json blocks
-   */
-  private parseResponse(content: string): AIExtractedData {
+  private parseResponse(content: string, fallbackText: string): ExtractResponse {
     try {
-      // Try to extract JSON from markdown code blocks first
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
+      const parsed = JSON.parse(content) as Record<string, unknown>;
 
-      const parsed = JSON.parse(jsonStr) as AIExtractedData;
+      // LLM occasionally omits the text field despite prompt instructions
+      if (!parsed['text']) parsed['text'] = fallbackText;
 
-      // Validate required fields
-      if (typeof parsed.text !== 'string') {
-        throw new Error('Missing or invalid "text" field');
+      const result = extractionSchema.safeParse(parsed);
+      if (!result.success) {
+        throw new AIParsingError(
+          `Invalid AI response structure: ${JSON.stringify(result.error.issues)}`,
+        );
       }
 
-      return parsed;
+      return result.data;
     } catch (error) {
+      if (error instanceof AIParsingError) throw error;
       throw new AIParsingError(
         `Failed to parse AI response: ${error instanceof Error ? error.message : 'Invalid JSON'}`,
         error instanceof Error ? error : undefined,
       );
     }
-  }
-
-  /**
-   * Transform AI extracted data to standard ExtractResponse format
-   */
-  private transformToResponse(extracted: AIExtractedData, originalText: string): ExtractResponse {
-    return {
-      text: extracted.text || originalText,
-      description: extracted.description || null,
-      product: extracted.product || null,
-      store: extracted.store || null,
-      price: extracted.price,
-      coupons: extracted.coupons.map(c => ({
-        code: c.code,
-        discount: c.discount || undefined,
-      })),
-      productKey: extracted.productKey || null,
-      category: extracted.category || null,
-    };
   }
 }

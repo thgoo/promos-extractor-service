@@ -3,6 +3,7 @@
  * Automatically retries failed operations with increasing delays
  */
 
+import { logger } from '~/logger';
 import { AIAPIError } from '../types';
 
 export interface RetryConfig {
@@ -29,7 +30,7 @@ function isRetryableError(error: unknown): boolean {
 
   const { statusCode } = error;
 
-  if (!statusCode) return false;
+  if (statusCode == null) return false;
 
   // Retry on timeout
   if (statusCode === 408) return true;
@@ -100,11 +101,12 @@ export async function withRetry<T>(
       // Calculate delay and wait before retry
       const delay = calculateDelay(attempt, finalConfig);
 
-      // Log retry attempt (can be integrated with logger later)
-      if (error instanceof AIAPIError) {
-        // eslint-disable-next-line no-console
-        console.debug(`Retry attempt ${attempt}/${finalConfig.maxAttempts} after ${delay}ms (error: ${error.message})`);
-      }
+      logger.warn('Operation failed, retrying', {
+        attempt,
+        maxAttempts: finalConfig.maxAttempts,
+        delayMs: delay,
+        error: error instanceof Error ? error.message : String(error),
+      });
 
       await sleep(delay);
     }
