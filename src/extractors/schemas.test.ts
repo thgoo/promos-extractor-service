@@ -97,12 +97,13 @@ describe('extractionSchema', () => {
     if (result.success) expect(result.data.coupons).toEqual([]);
   });
 
-  test('accepts coupon with null discount', () => {
+  test('transforms null discount to undefined (field omitted in JSON)', () => {
     const result = extractionSchema.safeParse({
       ...base,
       coupons: [{ code: 'PROMO10', discount: null }],
     });
     expect(result.success).toBe(true);
+    if (result.success) expect(result.data.coupons[0]?.discount).toBeUndefined();
   });
 
   test('accepts coupon with string discount', () => {

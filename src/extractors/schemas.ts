@@ -10,7 +10,8 @@ export const extractRequestSchema = z.object({
 
 export const couponSchema = z.object({
   code: z.string(),
-  discount: z.string().nullable(),
+  // LLM returns null when no discount value — transform to undefined so JSON omits the field
+  discount: z.string().nullable().transform(val => val ?? undefined),
 });
 
 export const extractionSchema = z.object({
