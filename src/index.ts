@@ -45,7 +45,7 @@ export function createApp({
   });
 
   app.onError(async (err, c) => {
-    const appErr = c.get('logger') as Logger;
+    const appErr = c.get('logger');
 
     if (err instanceof HTTPException) {
       const errMessage = await err.getResponse().text();

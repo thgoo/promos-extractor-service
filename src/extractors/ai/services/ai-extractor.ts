@@ -15,9 +15,6 @@ export default class AIExtractorService implements LLMProvider {
   private readonly timeoutMs: number;
 
   constructor() {
-    if (!config.ABACUS_API_KEY) {
-      throw new Error('ABACUS_API_KEY is required');
-    }
     this.apiKey = config.ABACUS_API_KEY;
     this.model = config.ABACUS_MODEL;
     this.baseUrl = config.ABACUS_BASE_URL;
