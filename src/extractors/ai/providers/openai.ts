@@ -1,24 +1,36 @@
-import type { AbacusRequest, AbacusResponse, LLMProvider } from '../types';
+import type { ChatCompletionRequest, ChatCompletionResponse, LLMProvider } from '../types';
+import type { Logger } from '~/logger';
 import type { ExtractRequest, ExtractResponse } from '~/types';
-import { config } from '~/config';
 import { extractionSchema } from '~/extractors/schemas';
 import { EXTRACTION_SYSTEM_PROMPT } from '../prompts/system-prompt';
 import { AIAPIError, AIParsingError } from '../types';
 import { withRetry, RETRY_PRESETS } from '../utils/retry';
 
-export default class AIExtractorService implements LLMProvider {
-  readonly name = 'abacus';
+export interface OpenAIProviderConfig {
+  apiKey: string;
+  model: string;
+  timeoutMs: number;
+  baseUrl?: string;
+  logger?: Logger;
+}
+
+const BASE_URL = 'https://api.openai.com/v1/chat/completions';
+
+export default class OpenAIProvider implements LLMProvider {
+  readonly name = 'openai';
+  readonly model: string;
 
   private readonly apiKey: string;
-  private readonly model: string;
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
+  private readonly logger?: Logger;
 
-  constructor() {
-    this.apiKey = config.ABACUS_API_KEY;
-    this.model = config.ABACUS_MODEL;
-    this.baseUrl = config.ABACUS_BASE_URL;
-    this.timeoutMs = config.ABACUS_TIMEOUT_MS;
+  constructor(config: OpenAIProviderConfig) {
+    this.apiKey = config.apiKey;
+    this.model = config.model;
+    this.baseUrl = config.baseUrl ?? BASE_URL;
+    this.timeoutMs = config.timeoutMs;
+    this.logger = config.logger;
   }
 
   async extract(input: ExtractRequest): Promise<ExtractResponse> {
@@ -30,7 +42,7 @@ export default class AIExtractorService implements LLMProvider {
     }, RETRY_PRESETS.AGGRESSIVE);
   }
 
-  private buildPayload(text: string, links: string[]): AbacusRequest {
+  private buildPayload(text: string, links: string[]): ChatCompletionRequest {
     const linksContext = links.length > 0
       ? `\n\n[Links expandidos: ${links.join(', ')}]`
       : '';
@@ -47,7 +59,7 @@ export default class AIExtractorService implements LLMProvider {
     };
   }
 
-  private async callAPI(payload: AbacusRequest): Promise<string> {
+  private async callAPI(payload: ChatCompletionRequest): Promise<string> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -65,16 +77,25 @@ export default class AIExtractorService implements LLMProvider {
       if (!response.ok) {
         const errorBody = await response.text();
         throw new AIAPIError(
-          `Abacus API error (${response.status}): ${response.statusText}${errorBody ? ` - ${errorBody}` : ''}`,
+          `OpenAI API error (${response.status}): ${response.statusText}${errorBody ? ` - ${errorBody}` : ''}`,
           response.status,
         );
       }
 
-      const data = await response.json() as AbacusResponse;
+      const data = await response.json() as ChatCompletionResponse;
       const content = data.choices[0]?.message?.content;
 
       if (!content) {
-        throw new AIAPIError('Empty response from Abacus API', 500);
+        throw new AIAPIError('Empty response from OpenAI API', 500);
+      }
+
+      if (data.usage) {
+        this.logger?.debug('OpenAI token usage', {
+          promptTokens: data.usage.prompt_tokens,
+          completionTokens: data.usage.completion_tokens,
+          totalTokens: data.usage.total_tokens,
+          cachedTokens: data.usage.prompt_tokens_details?.cached_tokens ?? 0,
+        });
       }
 
       return content;

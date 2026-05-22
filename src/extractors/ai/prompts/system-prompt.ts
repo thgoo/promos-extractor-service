@@ -46,7 +46,6 @@ NOTE ÓTIMO PRA TUA ROTINA
 
 Output:
 {
-  "text": "NOTE ÓTIMO PRA TUA ROTINA\n💻 Notebook Acer Aspire GO 15, Intel Core i5, 512GB SSD, 8GB RAM\n🔥 DE 3.299 | POR 2.799 em 12x\n🎟Aplique o cupom de R$200 OFF",
   "description": "Pra você fingir que vai ser produtivo.\nEm até 12x.\nAplique o cupom de R$200 OFF para chegar no preço.",
   "product": "Notebook Acer Aspire GO 15, Intel Core i5, 512GB SSD, 8GB RAM",
   "store": null,
@@ -64,7 +63,6 @@ https://mercadolivre.com/sec/2MLbkZG
 
 Output:
 {
-  "text": "🔥 Monitor AOC 24\" 180Hz\nDE 799 | POR 598,40\nCUPOM: MELIPROMOAQUI ou VALEPROMO\nhttps://mercadolivre.com/sec/2MLbkZG",
   "description": "Monitor bom pra perder ranked em alta definição.\nAplique um dos cupons para chegar no preço.",
   "product": "Monitor AOC 24\" 180Hz",
   "store": "Mercado Livre",
@@ -84,7 +82,6 @@ https://amazon.com.br/dp/B0CL5KNB9M
 
 Output:
 {
-  "text": "🎮 PlayStation 5 Slim Digital 1TB\nPor apenas R$ 2.849\nhttps://amazon.com.br/dp/B0CL5KNB9M",
   "description": "Pra você finalmente zerar aquele backlog. Ou não.",
   "product": "PlayStation 5 Slim Digital 1TB",
   "store": "Amazon",
@@ -104,7 +101,6 @@ Input:
 
 Output:
 {
-  "text": "🌡️ 332° - Cupom Mercado Livre 15% limitado em R$60\n🎟️ CUPOM\n🏪 Mercado Livre\n💬 11 Comentários\n\n➡️ https://promo.ninja/dRzRe",
   "description": "Corre que essa promo pode sumir.\nCupom de 15% limitado em R$60.",
   "product": null,
   "store": "Mercado Livre",
@@ -121,7 +117,6 @@ https://amazon.com.br/dp/xxx
 
 Output:
 {
-  "text": "🛒 Hemmer Ketchup Tradicional 1kg\nPor R$ 18,90\nhttps://amazon.com.br/dp/xxx",
   "description": "Pra você fingir que come saudável enquanto afoga tudo em ketchup.",
   "product": "Hemmer Ketchup Tradicional 1kg",
   "store": "Amazon",

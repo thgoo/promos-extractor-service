@@ -7,7 +7,7 @@ import { HTTP_STATUS_CODE } from '~/constants/http';
 import extractors from '~/extractors/extractors';
 import { type Logger, logger } from '~/logger';
 import { version } from '../package.json';
-import AIExtractorService from './extractors/ai/services/ai-extractor';
+import { createProvider } from './extractors/ai/provider-factory';
 import ExtractorOrchestrator from './extractors/services/extractor-orchestrator';
 
 export function createApp({
@@ -69,15 +69,11 @@ export function createApp({
   return app;
 }
 
-if (config.LLM_PROVIDER !== 'abacus') {
-  throw new Error(`Unsupported LLM provider: "${config.LLM_PROVIDER}". Only "abacus" is supported.`);
-}
-
-const aiProvider = new AIExtractorService();
+const aiProvider = createProvider(config.LLM_PROVIDER);
 
 logger.info('AI Extractor initialized', {
   provider: aiProvider.name,
-  model: config.ABACUS_MODEL,
+  model: aiProvider.model,
 });
 
 const orchestrator = new ExtractorOrchestrator(aiProvider, logger);

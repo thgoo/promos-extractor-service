@@ -2,23 +2,24 @@ import type { ExtractRequest, ExtractResponse } from '~/types';
 
 export interface LLMProvider {
   readonly name: string;
+  readonly model: string;
   extract(input: ExtractRequest): Promise<ExtractResponse>;
 }
 
-export interface AbacusMessage {
+export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-export interface AbacusRequest {
+export interface ChatCompletionRequest {
   model: string;
-  messages: AbacusMessage[];
+  messages: ChatMessage[];
   response_format: { type: 'json_object' };
   temperature?: number;
   max_tokens?: number;
 }
 
-export interface AbacusResponse {
+export interface ChatCompletionResponse {
   id: string;
   object: string;
   created: number;
@@ -35,6 +36,9 @@ export interface AbacusResponse {
     prompt_tokens: number;
     completion_tokens: number;
     total_tokens: number;
+    prompt_tokens_details?: {
+      cached_tokens: number;
+    };
   };
 }
 
