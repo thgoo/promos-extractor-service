@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CATEGORIES } from '~/constants/categories';
+import type { Category } from '~/constants/categories';
 
 export const extractRequestSchema = z.object({
   text: z.string().min(1, 'Text is required'),
@@ -11,7 +12,7 @@ export const extractRequestSchema = z.object({
 export const couponSchema = z.object({
   code: z.string(),
   // LLM returns null when no discount value — transform to undefined so JSON omits the field
-  discount: z.string().nullable().transform(val => val ?? undefined),
+  discount: z.string().nullable().transform((val): string | undefined => val ?? undefined),
 });
 
 export const extractionSchema = z.object({

@@ -19,7 +19,6 @@ const CACHE_KEY = 'bargah-extraction';
 
 interface OpenAIChatCompletionRequest extends ChatCompletionRequest {
   prompt_cache_key?: string;
-  prompt_cache_retention?: 'in_memory' | '24h';
 }
 
 export default class OpenAIProvider implements LLMProvider {
@@ -63,7 +62,6 @@ export default class OpenAIProvider implements LLMProvider {
       temperature: 0,
       max_tokens: 1024,
       prompt_cache_key: CACHE_KEY,
-      prompt_cache_retention: '24h',
     };
   }
 

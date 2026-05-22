@@ -6,7 +6,7 @@ export default class ExtractorOrchestrator {
   constructor(
     private readonly aiProvider: LLMProvider,
     private readonly logger: Logger,
-  ) {}
+  ) { }
 
   async extract(input: ExtractRequest): Promise<ExtractResponse> {
     const { messageId, chat, text } = input;
