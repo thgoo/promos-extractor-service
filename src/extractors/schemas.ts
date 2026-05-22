@@ -22,7 +22,11 @@ export const extractionSchema = z.object({
   price: z.number().transform(Math.round).nullable(),
   coupons: z.array(couponSchema).default([]),
   productKey: z.string().nullable(),
-  category: z.enum(CATEGORIES).nullable(),
+  category: z.string().nullable().transform((val): Category | null => {
+    if (val === null) return null;
+    if ((CATEGORIES as readonly string[]).includes(val)) return val as Category;
+    return 'others';
+  }),
 });
 
 export type ExtractRequest = z.infer<typeof extractRequestSchema>;

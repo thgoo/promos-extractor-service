@@ -85,9 +85,10 @@ describe('extractionSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  test('rejects an unknown category', () => {
+  test('maps unknown category to "others"', () => {
     const result = extractionSchema.safeParse({ ...base, category: 'electronics' });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.category).toBe('others');
   });
 
   test('defaults coupons to empty array when omitted', () => {
