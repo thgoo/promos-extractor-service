@@ -90,12 +90,7 @@ export default class OpenAIProvider implements LLMProvider {
       }
 
       if (data.usage) {
-        this.logger?.debug('OpenAI token usage', {
-          promptTokens: data.usage.prompt_tokens,
-          completionTokens: data.usage.completion_tokens,
-          totalTokens: data.usage.total_tokens,
-          cachedTokens: data.usage.prompt_tokens_details?.cached_tokens ?? 0,
-        });
+        this.logger?.debug('OpenAI token usage', { usage: data.usage });
       }
 
       return content;

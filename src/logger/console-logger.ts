@@ -2,20 +2,36 @@ import type { Logger } from './types';
 
 export class ConsoleLogger implements Logger {
   private readonly isDevelopment: boolean;
-
-  private static readonly LEVEL_STYLES: Partial<Record<string, readonly [icon: string, color: string]>> = {
-    info:  ['[INFO]',  '\x1b[36m'],
-    warn:  ['[WARN]',  '\x1b[33m'],
-    error: ['[ERROR]', '\x1b[31m'],
-    debug: ['[DEBUG]', '\x1b[90m'],
-  };
+  private readonly logLevel: string;
+  private readonly levels = ['debug', 'info', 'warn', 'error'];
 
   constructor() {
-    this.isDevelopment = process.env['NODE_ENV'] !== 'production';
+    this.isDevelopment = process.env.NODE_ENV !== 'production';
+    this.logLevel = process.env['LOG_LEVEL'] || (this.isDevelopment ? 'debug' : 'info');
   }
 
-  private shouldLog(): boolean {
-    return process.env['NODE_ENV'] !== 'test';
+  private shouldLogLevel(level: string): boolean {
+    return this.levels.indexOf(level) >= this.levels.indexOf(this.logLevel);
+  }
+
+  private getLogIcon(level: string): string {
+    switch (level) {
+      case 'info': return '[INFO]';
+      case 'warn': return '[WARN]';
+      case 'error': return '[ERROR]';
+      case 'debug': return '[DEBUG]';
+      default: return '[LOG]';
+    }
+  }
+
+  private getLogColor(level: string): string {
+    switch (level) {
+      case 'info': return '\x1b[36m';
+      case 'warn': return '\x1b[33m';
+      case 'error': return '\x1b[31m';
+      case 'debug': return '\x1b[90m';
+      default: return '\x1b[0m';
+    }
   }
 
   private formatMeta(meta?: Record<string, unknown>): string {
@@ -23,8 +39,10 @@ export class ConsoleLogger implements Logger {
 
     const entries = Object.entries(meta)
       .map(([key, value]) => {
-        const formatted = typeof value === 'string' ? value : JSON.stringify(value);
-        return `\x1b[90m${key}=\x1b[0m${formatted}`;
+        const formattedValue = typeof value === 'string'
+          ? value
+          : JSON.stringify(value);
+        return `\x1b[90m${key}=\x1b[0m${formattedValue}`;
       })
       .join(' ');
 
@@ -32,25 +50,37 @@ export class ConsoleLogger implements Logger {
   }
 
   private log(level: string, message: string, meta?: Record<string, unknown>) {
-    if (!this.shouldLog()) return;
+    if (!this.shouldLogLevel(level)) return;
 
     const now = new Date();
-    // eslint-disable-next-line no-console
-    const output = level === 'error' ? console.error : console.log;
+    const timestamp = now.toISOString();
 
     if (!this.isDevelopment) {
-      output(JSON.stringify({ level, message, timestamp: now.toISOString(), ...meta }));
+      const logData = { level, message, timestamp, ...meta };
+      const output = level === 'error' ? console.error : console.log;
+      // eslint-disable-next-line no-console
+      output(JSON.stringify(logData));
       return;
     }
 
-    const [icon, color] = ConsoleLogger.LEVEL_STYLES[level] ?? ['[LOG]', '\x1b[0m'];
+    const color = this.getLogColor(level);
+    const icon = this.getLogIcon(level);
     const reset = '\x1b[0m';
     const gray = '\x1b[90m';
+
     const time = now.toLocaleTimeString('pt-BR', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
     });
 
-    output(`${gray}${time}${reset} ${color}${icon} ${message}${reset}${this.formatMeta(meta)}`);
+    const metaStr = this.formatMeta(meta);
+    const prettyLog = `${gray}${time}${reset} ${color}${icon} ${message}${reset}${metaStr}`;
+
+    // eslint-disable-next-line no-console
+    const output = level === 'error' ? console.error : console.log;
+    output(prettyLog);
   }
 
   info(message: string, meta?: Record<string, unknown>) { this.log('info', message, meta); }
