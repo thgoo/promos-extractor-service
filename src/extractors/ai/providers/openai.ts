@@ -15,6 +15,12 @@ export interface OpenAIProviderConfig {
 }
 
 const BASE_URL = 'https://api.openai.com/v1/chat/completions';
+const CACHE_KEY = 'bargah-extraction';
+
+interface OpenAIChatCompletionRequest extends ChatCompletionRequest {
+  prompt_cache_key?: string;
+  prompt_cache_retention?: 'in_memory' | '24h';
+}
 
 export default class OpenAIProvider implements LLMProvider {
   readonly name = 'openai';
@@ -42,7 +48,7 @@ export default class OpenAIProvider implements LLMProvider {
     }, RETRY_PRESETS.AGGRESSIVE);
   }
 
-  private buildPayload(text: string, links: string[]): ChatCompletionRequest {
+  private buildPayload(text: string, links: string[]): OpenAIChatCompletionRequest {
     const linksContext = links.length > 0
       ? `\n\n[Links expandidos: ${links.join(', ')}]`
       : '';
@@ -56,10 +62,12 @@ export default class OpenAIProvider implements LLMProvider {
       response_format: { type: 'json_object' },
       temperature: 0,
       max_tokens: 1024,
+      prompt_cache_key: CACHE_KEY,
+      prompt_cache_retention: '24h',
     };
   }
 
-  private async callAPI(payload: ChatCompletionRequest): Promise<string> {
+  private async callAPI(payload: OpenAIChatCompletionRequest): Promise<string> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
