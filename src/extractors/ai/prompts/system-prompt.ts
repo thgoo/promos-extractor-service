@@ -46,7 +46,7 @@ NOTE ÓTIMO PRA TUA ROTINA
 
 Output:
 {
-  "description": "Pra você fingir que vai ser produtivo.\nEm até 12x.\nAplique o cupom de R$200 OFF para chegar no preço.",
+  "description": "Faz o que um notebook deve fazer. Nada mais, nada menos..\nEm até 12x.\nAplique o cupom de R$200 OFF para chegar no preço.",
   "product": "Notebook Acer Aspire GO 15, Intel Core i5, 512GB SSD, 8GB RAM",
   "store": null,
   "price": 279900,
@@ -82,7 +82,7 @@ https://amazon.com.br/dp/B0CL5KNB9M
 
 Output:
 {
-  "description": "Pra você finalmente zerar aquele backlog. Ou não.",
+  "description": "Para evitar o arrependimento de ser um adulto funcional. Edição digital com 1TB de armazenamento.",
   "product": "PlayStation 5 Slim Digital 1TB",
   "store": "Amazon",
   "price": 284900,
@@ -117,7 +117,7 @@ https://amazon.com.br/dp/xxx
 
 Output:
 {
-  "description": "Pra você fingir que come saudável enquanto afoga tudo em ketchup.",
+  "description": "Pequena alegria em frasco grande.",
   "product": "Hemmer Ketchup Tradicional 1kg",
   "store": "Amazon",
   "price": 1890,
