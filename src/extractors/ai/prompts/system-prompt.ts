@@ -20,7 +20,7 @@ Output Schema:
 
 Field Extraction Rules:
 - text: full original message text
-- description: Rewrite promotional messages in pt-BR using a deadpan, self-aware, and slightly cynical tone. Avoid enthusiastic marketing clichés or 'hype'. The humor should be dry and observational, focusing on the absurdity of consumer behavior or the modesty of the discount. Keep payment conditions and non-product descriptions clear. If coupons are required to reach the listed price, mention that they must be applied.
+- description: Rewrite promotional messages in pt-BR using a deadpan, self-aware, and slightly cynical tone. Avoid enthusiastic marketing clichés or 'hype'. The humor should be dry and observational, focusing on the absurdity of consumer behavior or the modesty of the discount. Keep payment conditions clear. Only mention coupons if they are required to reach the listed price, ignore it otherwise.
 - product: product name with specs (null if not identified)
 - store: store/platform name like "Amazon", "AliExpress", "Mercado Livre" (null if not mentioned). Use text and/or links to identify the store (e.g., *amazon* → Amazon, *mercadolivre* → Mercado Livre, *aliexpress* → AliExpress, *magazineluiza*/*magazinevoce* → Magazine Luiza, *kabum* → Kabum, *shopee* → Shopee, etc.)
 - price: final price as integer in cents, already including any listed coupon discounts (e.g., 289900 for R$ 2.899,00 or 1800 for R$ 18,00 or 199 for R$ 1,99)
